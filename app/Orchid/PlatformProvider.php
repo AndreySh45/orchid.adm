@@ -26,7 +26,12 @@ class PlatformProvider extends OrchidServiceProvider
     public function registerMainMenu(): array
     {
         return [
-            Menu::make('Example screen')
+            Menu::make('Клиенты')
+            ->icon('user') //Иконка из документации
+            ->route('platform.clients') //Маршрут
+            ->title('Клиенты'), //Заголовок
+
+            /* Menu::make('Example screen')
                 ->icon('monitor')
                 ->route('platform.example')
                 ->title('Navigation')
@@ -90,7 +95,7 @@ class PlatformProvider extends OrchidServiceProvider
             Menu::make(__('Roles'))
                 ->icon('lock')
                 ->route('platform.systems.roles')
-                ->permission('platform.systems.roles'),
+                ->permission('platform.systems.roles'),*/
         ];
     }
 
