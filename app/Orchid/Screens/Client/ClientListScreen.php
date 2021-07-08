@@ -2,12 +2,19 @@
 
 namespace App\Orchid\Screens\Client;
 
+use App\Http\Requests\ClientRequest;
 use App\Models\Client;
-use Carbon\Carbon;
-use Carbon\CarbonPeriod;
+use App\Models\Service;
 use Orchid\Screen\Screen;
-use Orchid\Screen\TD;
+use Orchid\Screen\Fields\Group;
+use Orchid\Screen\Fields\Input;
+use Orchid\Support\Facades\Toast;
+use Orchid\Screen\Fields\Relation;
 use Orchid\Support\Facades\Layout;
+use Orchid\Screen\Fields\DateTimer;
+use Orchid\Screen\Actions\ModalToggle;
+use App\Orchid\Layouts\Client\ClientListTable;
+use Illuminate\Http\Request;
 
 class ClientListScreen extends Screen
 {
@@ -33,7 +40,7 @@ class ClientListScreen extends Screen
     public function query(): array
     {
         return [
-            'clients' => Client::paginate(10)
+            'clients' => Client::filters()->defaultSort('status', 'desc')->paginate(10) //сортировка по умолчанию
         ];
     }
 
@@ -44,7 +51,9 @@ class ClientListScreen extends Screen
      */
     public function commandBar(): array
     {
-        return [];
+        return [
+            ModalToggle::make('Новый клиент')->modal('createClient')->method('create')
+        ];
     }
 
     /**
@@ -55,23 +64,26 @@ class ClientListScreen extends Screen
     public function layout(): array
     {
         return [
-            Layout::table('clients', [
-                TD::make('phone', 'Телефон')->width('150px')->cantHide()->canSee($this->isWorkTime()), //скрытие колонки при внешних условий
-                TD::make('status', 'Статус')->render(function (Client $client) {
-                    return $client->status === 'interviewed' ? 'Опрошен' : 'Не опрошен'; //можно использовать гетеры
-                })->width('150px')->popover('Статус по результатам работы оператора'), //Подсказка
-                TD::make('email', 'Email'),
-                TD::make('assessment', 'Оценка')->width('200px')->align(TD::ALIGN_RIGHT),
-                TD::make('created_at', 'Дата создания')->defaultHidden(), //по умолчанию скрыто, можно показать
-                TD::make('updated_at', 'Дата обновления')->defaultHidden()
-            ])
+            ClientListTable::class,
+            Layout::modal('createClient', Layout::rows([
+                Input::make('phone')->required()->title('Телефон')->mask('(999) 999-9999'),
+                Group::make([ //размещение в одну строку
+                    Input::make('name')->required()->title('Имя'),
+                    Input::make('last_name')->required()->title('Фамилия'),
+                ]),
+                Input::make('email')->type('email')->title('Email'),
+                DateTimer::make('birthday')->required()->format('Y-m-d')->title('День рождения'),
+                Relation::make('service_id')->fromModel(Service::class, 'name')->title('Тип услуги')->required()
+            ]))->title('Добавление нового клиента')->applyButton('Создать')
         ];
     }
 
-    //Чтоб нельзя было работать о время обеденного перерыва
-    private function isWorkTime():bool
-    {
-        $lunch = CarbonPeriod::create('13:00', '14:00');
-        return $lunch->contains(Carbon::now(config('app.timezone'))) === false;
+    public function create(ClientRequest $request){
+        Client::create(array_merge($request->validated(), [
+            'status' => 'interviewed'
+        ]));
+        Toast::info('Клиент успешно создан');
     }
+
+
 }
