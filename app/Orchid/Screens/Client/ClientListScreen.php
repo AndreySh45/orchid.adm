@@ -2,19 +2,21 @@
 
 namespace App\Orchid\Screens\Client;
 
-use App\Http\Requests\ClientRequest;
 use App\Models\Client;
 use App\Models\Service;
 use Orchid\Screen\Screen;
+use Illuminate\Http\Request;
 use Orchid\Screen\Fields\Group;
 use Orchid\Screen\Fields\Input;
+use Orchid\Screen\Fields\Select;
 use Orchid\Support\Facades\Toast;
 use Orchid\Screen\Fields\Relation;
 use Orchid\Support\Facades\Layout;
 use Orchid\Screen\Fields\DateTimer;
+use App\Http\Requests\ClientRequest;
 use Orchid\Screen\Actions\ModalToggle;
+use App\Orchid\Layouts\CreateOrUpdateClient;
 use App\Orchid\Layouts\Client\ClientListTable;
-use Illuminate\Http\Request;
 
 class ClientListScreen extends Screen
 {
@@ -52,7 +54,7 @@ class ClientListScreen extends Screen
     public function commandBar(): array
     {
         return [
-            ModalToggle::make('Новый клиент')->modal('createClient')->method('create')
+            ModalToggle::make('Новый клиент')->modal('createClient')->method('createOrUpdateClient'),
         ];
     }
 
@@ -65,24 +67,30 @@ class ClientListScreen extends Screen
     {
         return [
             ClientListTable::class,
-            Layout::modal('createClient', Layout::rows([
-                Input::make('phone')->required()->title('Телефон')->mask('(999) 999-9999'),
-                Group::make([ //размещение в одну строку
-                    Input::make('name')->required()->title('Имя'),
-                    Input::make('last_name')->required()->title('Фамилия'),
-                ]),
-                Input::make('email')->type('email')->title('Email'),
-                DateTimer::make('birthday')->required()->format('Y-m-d')->title('День рождения'),
-                Relation::make('service_id')->fromModel(Service::class, 'name')->title('Тип услуги')->required()
-            ]))->title('Добавление нового клиента')->applyButton('Создать')
+            Layout::modal('createClient', CreateOrUpdateClient::class)->title('Добавление нового клиента')->applyButton('Создать'),
+            Layout::modal('editClient', CreateOrUpdateClient::class)->async('asyncGetClient')
         ];
     }
 
-    public function create(ClientRequest $request){
-        Client::create(array_merge($request->validated(), [
+
+
+    public function asyncGetClient(Client $client): array
+    {
+        return [
+          'client' => $client
+        ];
+    }
+
+
+    public function createOrUpdateClient(ClientRequest $request): void{
+        $clientId = $request->input('client.id');
+        Client::updateOrCreate([
+            'id' => $clientId
+        ], array_merge($request->validated()['client'], [
             'status' => 'interviewed'
         ]));
-        Toast::info('Клиент успешно создан');
+
+        is_null($clientId) ? Toast::info('Клиент создан') : Toast::info('Клиент обновлен');
     }
 
 

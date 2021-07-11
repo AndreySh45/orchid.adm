@@ -7,6 +7,7 @@ use Orchid\Screen\TD;
 use App\Models\Client;
 use Carbon\CarbonPeriod;
 use Orchid\Screen\Layouts\Table;
+use Orchid\Screen\Actions\ModalToggle;
 
 class ClientListTable extends Table
 {
@@ -36,7 +37,16 @@ class ClientListTable extends Table
             TD::make('name', 'Имя клиента')->width('300px')->align(TD::ALIGN_LEFT)->defaultHidden(),
             TD::make('assessment', 'Оценка')->width('200px')->align(TD::ALIGN_RIGHT),
             TD::make('created_at', 'Дата создания')->defaultHidden(), //по умолчанию скрыто, можно показать
-            TD::make('updated_at', 'Дата обновления')->defaultHidden()
+            TD::make('updated_at', 'Дата обновления')->defaultHidden(),
+            TD::make('action')->render(function (Client $client) {
+                return ModalToggle::make('Редактировать')
+                    ->modal('editClient')
+                    ->method('createOrUpdateClient')
+                    ->modalTitle('Редактирование клиента ' . $client->phone)
+                    ->asyncParameters([
+                        'client' => $client->id
+                    ]);
+            })
         ];
     }
 
