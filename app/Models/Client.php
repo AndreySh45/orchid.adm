@@ -28,5 +28,10 @@ class Client extends Model
         $this->attributes['phone'] =  str_replace('+', '', PhoneNumber::make($phoneCandidate, 'RU')->formatE164());
     }
 
+   /*  public function getPhoneAttribute($phoneCandidate)
+    {
+        return ltrim($phoneCandidate, '7');
+    } */
+
 
 }
