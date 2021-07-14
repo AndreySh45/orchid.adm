@@ -31,7 +31,7 @@ class ClientListTable extends Table
         return [
             TD::make('phone', 'Телефон')->width('150px')->cantHide()->canSee($this->isWorkTime())->filter(TD::FILTER_TEXT), //скрытие колонки при внешних условий
             TD::make('status', 'Статус')->render(function (Client $client) {
-                return $client->status === 'interviewed' ? 'Опрошен' : 'Не опрошен'; //можно использовать гетеры
+                return Client::STATUS[$client->status]; //используем замену
             })->width('150px')->popover('Статус по результатам работы оператора')->sort(), //Подсказка и возможность переключить сортировку
             TD::make('email', 'Email'),
             TD::make('name', 'Имя клиента')->width('300px')->align(TD::ALIGN_LEFT)->defaultHidden(),
