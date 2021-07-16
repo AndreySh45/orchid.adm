@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Orchid\Screen\TD;
 use App\Models\Client;
 use Carbon\CarbonPeriod;
+use App\Orchid\Fields\Rate;
 use Orchid\Screen\Layouts\Table;
 use Orchid\Screen\Actions\ModalToggle;
 
@@ -35,7 +36,19 @@ class ClientListTable extends Table
             })->width('150px')->popover('Статус по результатам работы оператора')->sort(), //Подсказка и возможность переключить сортировку
             TD::make('email', 'Email'),
             TD::make('name', 'Имя клиента')->width('300px')->align(TD::ALIGN_LEFT)->defaultHidden(),
-            TD::make('assessment', 'Оценка')->width('200px')->align(TD::ALIGN_RIGHT),
+            TD::make('assessment', 'Оценка')->width('200px')->render(function (Client $client) {
+                $numberAssessment = [
+                    'Отлично' => 4,
+                    'Хорошо' => 3,
+                    'Удовлетворительно' => 2,
+                    'Отвратительно' => 1,
+                    'Не известно' => 0
+                ];
+                return Rate::make('rate')
+                       ->count(4)
+                       ->readonly(true)
+                       ->haveRated($numberAssessment[$client->assessment] ?? 0);
+            }),
             TD::make('created_at', 'Дата создания')->defaultHidden(), //по умолчанию скрыто, можно показать
             TD::make('updated_at', 'Дата обновления')->defaultHidden(),
             TD::make('action')->render(function (Client $client) {

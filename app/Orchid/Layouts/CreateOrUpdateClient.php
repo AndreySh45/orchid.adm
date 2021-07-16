@@ -4,6 +4,7 @@ namespace App\Orchid\Layouts;
 
 use App\Models\Service;
 use Orchid\Screen\Field;
+use App\Orchid\Fields\Rate;
 use Orchid\Screen\Fields\Group;
 use Orchid\Screen\Fields\Input;
 use Orchid\Screen\Layouts\Rows;
@@ -45,6 +46,10 @@ class CreateOrUpdateClient extends Rows
                 'Удовлетворительно' => 'Удовлетворительно',
                 'Отвратительно' => 'Отвратительно'
             ])->help('Реакция на оказанную услугу')->empty('Не известно', 'Не известно')
+            /* Rate::make('client.rate') //Подключение кастомного поля для ввода
+             ->count(4)
+             ->title('Указать рейтинг')
+             ->help('Выберете кол-во звезд') */
         ];
     }
 }
