@@ -36,7 +36,7 @@ class ClientListTable extends Table
             })->width('150px')->popover('Статус по результатам работы оператора')->sort(), //Подсказка и возможность переключить сортировку
             TD::make('email', 'Email'),
             TD::make('name', 'Имя клиента')->width('300px')->align(TD::ALIGN_LEFT)->defaultHidden(),
-            TD::make('assessment', 'Оценка')->width('200px')->render(function (Client $client) {
+            TD::make('assessment', 'Оценка')->width('300px')->render(function (Client $client) {
                 $numberAssessment = [
                     'Отлично' => 4,
                     'Хорошо' => 3,
@@ -66,7 +66,7 @@ class ClientListTable extends Table
     //Чтоб нельзя было работать о время обеденного перерыва
     private function isWorkTime():bool
     {
-        $lunch = CarbonPeriod::create('12:00', '13:00');
+        $lunch = CarbonPeriod::create('15:00', '16:00');
         return $lunch->contains(Carbon::now(config('app.timezone'))) === false;
     }
 }

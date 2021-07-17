@@ -2,21 +2,16 @@
 
 namespace App\Orchid\Screens\Client;
 
+use Carbon\Carbon;
 use App\Models\Client;
-use App\Models\Service;
 use Orchid\Screen\Screen;
-use Illuminate\Http\Request;
-use Orchid\Screen\Fields\Group;
-use Orchid\Screen\Fields\Input;
-use Orchid\Screen\Fields\Select;
 use Orchid\Support\Facades\Toast;
-use Orchid\Screen\Fields\Relation;
 use Orchid\Support\Facades\Layout;
-use Orchid\Screen\Fields\DateTimer;
 use App\Http\Requests\ClientRequest;
 use Orchid\Screen\Actions\ModalToggle;
 use App\Orchid\Layouts\CreateOrUpdateClient;
 use App\Orchid\Layouts\Client\ClientListTable;
+use App\View\Components\ProdressBoard;
 
 class ClientListScreen extends Screen
 {
@@ -43,8 +38,25 @@ class ClientListScreen extends Screen
      */
     public function query(): array
     {
+        $clients = Client::all();
+        $interviewedClients = $clients->where('status', 'interviewed'); //Все опрошенные
+
+        $countYesterday = $interviewedClients->filter(function ($client) {
+            return $client->updated_at->toDateString() === Carbon::yesterday()->toDateString();
+        })->count(); // Опрошенные вчера
+        $countToday = $interviewedClients->filter(function ($client) {
+            return $client->updated_at->toDateString() === Carbon::now()->toDateString();
+        })->count(); // Опрошенные сегодня
+
+        $progressDay = ceil($countToday > 0 ? ($countToday - $countYesterday) / $countYesterday * 100 : 0); // Процент улучшения показателя
+
+
         return [
-            'clients' => Client::filters()->defaultSort('status', 'desc')->paginate(10) //сортировка по умолчанию
+            'clients' => Client::filters()->defaultSort('status', 'desc')->paginate(10), //сортировка по умолчанию
+            'title'   => 'Результат выполненной работы',
+            'percent' => $progressDay,
+            'mainDigit' => $interviewedClients->count(),
+            'quantityFromOneHundred' => ceil(100 * $interviewedClients->count() / $clients->count())
         ];
     }
 
@@ -68,6 +80,7 @@ class ClientListScreen extends Screen
     public function layout(): array
     {
         return [
+            Layout::component(ProdressBoard::class), //Подключение кастомного компонента
             ClientListTable::class,
             Layout::modal('createClient', CreateOrUpdateClient::class)->title('Добавление нового клиента')->applyButton('Создать'),
             Layout::modal('editClient', CreateOrUpdateClient::class)->async('asyncGetClient')
