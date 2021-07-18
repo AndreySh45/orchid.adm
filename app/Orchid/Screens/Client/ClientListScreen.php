@@ -48,8 +48,7 @@ class ClientListScreen extends Screen
             return $client->updated_at->toDateString() === Carbon::now()->toDateString();
         })->count(); // Опрошенные сегодня
 
-        $progressDay = ceil($countToday > 0 ? ($countToday - $countYesterday) / $countYesterday * 100 : 0); // Процент улучшения показателя
-
+        $progressDay = $countToday > 0 ? ($countToday - $countYesterday) / ($countYesterday > 0 ? $countYesterday : 1) * 100 : 0; // Процент улучшения показателя
 
         return [
             'clients' => Client::filters()->defaultSort('status', 'desc')->paginate(10), //сортировка по умолчанию
@@ -91,6 +90,7 @@ class ClientListScreen extends Screen
 
     public function asyncGetClient(Client $client): array
     {
+        $client->load('invoice');
         return [
           'client' => $client
         ];
@@ -103,8 +103,10 @@ class ClientListScreen extends Screen
         Client::updateOrCreate([
             'id' => $clientId
         ], array_merge($request->validated()['client'], [
-            'status' => 'interviewed'
+            'status' => 'interviewed',
+            'invoice_id' => array_shift($request->validated()['client']['invoice_id'])
         ]));
+
 
         is_null($clientId) ? Toast::info('Клиент создан') : Toast::info('Клиент обновлен');
     }

@@ -9,6 +9,7 @@ use Orchid\Screen\Fields\Group;
 use Orchid\Screen\Fields\Input;
 use Orchid\Screen\Layouts\Rows;
 use Orchid\Screen\Fields\Select;
+use Orchid\Screen\Fields\Upload;
 use Orchid\Screen\Fields\Relation;
 use Orchid\Screen\Fields\DateTimer;
 
@@ -45,7 +46,13 @@ class CreateOrUpdateClient extends Rows
                 'Хорошо' => 'Хорошо',
                 'Удовлетворительно' => 'Удовлетворительно',
                 'Отвратительно' => 'Отвратительно'
-            ])->help('Реакция на оказанную услугу')->empty('Не известно', 'Не известно')
+            ])->help('Реакция на оказанную услугу')->empty('Не известно', 'Не известно'),
+            Upload::make('client.invoice_id')
+                ->maxFiles(1)
+                ->acceptedFiles('.xls, .xlsx')
+                ->storage('clients_invoices')
+                ->title('Загрузить накладную')
+                ->multiple(false)
             /* Rate::make('client.rate') //Подключение кастомного поля для ввода
              ->count(4)
              ->title('Указать рейтинг')
