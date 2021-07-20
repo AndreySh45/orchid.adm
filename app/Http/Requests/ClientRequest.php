@@ -31,7 +31,7 @@ class ClientRequest extends FormRequest
             'client.birthday' => ['required', 'date_format:Y-m-d'],
             'client.service_id' => ['exists:services,id', 'required'],
             'client.assessment' => ['required'],
-            'client.invoice_id' => ['required']
+            'client.invoice_id' => ['nullable', 'file']
         ];
     }
 
